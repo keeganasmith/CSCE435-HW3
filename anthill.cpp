@@ -322,6 +322,7 @@ int main (int argc, char **argv) {
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
     for(int i = block_sums.size()-1; i >= 0; i--){
+        cout << "number of ants for block " << block_sums.at(i).second << ": " << block_sums.at(i).first;
         int index = block_sums.at(i).second;
         int block_start_row = (index / blocks_per_side) * block_length;
         int block_start_col = (index % blocks_per_side) * block_length;
