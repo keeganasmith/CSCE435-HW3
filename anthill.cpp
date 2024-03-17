@@ -305,6 +305,7 @@ int main (int argc, char **argv) {
     vector<pair<int, int>> block_sums(num_blocks);
     int blocks_per_side = sqrt(num_blocks);
     start_time = omp_get_wtime(); 
+    double total_sum = 0.0;
     for(int i = 0; i < num_blocks; i++){
         int block_start_row = (i / blocks_per_side) * block_length;
         int block_start_col = (i % blocks_per_side) * block_length;
@@ -312,15 +313,16 @@ int main (int argc, char **argv) {
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
         cout << "start row: " << block_start_row << " end row: " << block_end_row - 1 << "\n";
         cout << "start col: " << block_start_col << " end col: " << block_end_col - 1 << "\n";
-        int sum = 0;
+        double sum = 0.0;
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
                 sum += MyLawn.number_of_ants_in_cell(j, k);
             }
         }
-        block_sums.at(i) = pair<int, int>(sum, i);  
+        total_sum += sum;
+        block_sums.at(i) = pair<double, int>(sum, i);  
     }
-
+    cout << "total sum was " << total_sum << "\n";
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
     for(int i = block_sums.size()-1; i >= 0; i--){
