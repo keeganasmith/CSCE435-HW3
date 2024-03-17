@@ -303,10 +303,11 @@ int main (int argc, char **argv) {
     int num_blocks = pow(floor(sqrt(num_threads)), 2);
     int block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
     vector<pair<int, int>> block_sums(num_blocks);
+    int blocks_per_side = sqrt(num_blocks);
     start_time = omp_get_wtime(); 
     for(int i = 0; i < num_blocks; i++){
-        int block_start_row = (i / MyLawn.m) * block_length;
-        int block_start_col = (i % MyLawn.m) * block_length;
+        int block_start_row = (i / blocks_per_side) * block_length;
+        int block_start_col = (i % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
         int sum = 0;
@@ -321,9 +322,9 @@ int main (int argc, char **argv) {
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
     for(int i = block_sums.size()-1; i >= 0; i--){
-        int block_index = block_sums.at(i).second;
-        int block_start_row = (index / MyLawn.m) * block_length;
-        int block_start_col = (index % MyLawn.m) * block_length;
+        int index = block_sums.at(i).second;
+        int block_start_row = (index / blocks_per_side) * block_length;
+        int block_start_col = (index % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
         for(int j = block_start_row; j < block_end_row; j++){
