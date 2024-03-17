@@ -330,19 +330,13 @@ int main (int argc, char **argv) {
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
-                if (MyLawn.guess_anthill_location(j, k) == 1) {
+                if (found == 0 && MyLawn.guess_anthill_location(j, k) == 1) {
                     cout << "i got here!\n";
                     found = 1;
                     break;
                 }
             }
-            if(found == 1){
-                break;
-            }
         }
-        if(found == 1){
-            break;
-        } 
     }
     execution_time = omp_get_wtime() - start_time; 
     MyLawn.report_results(execution_time); 
