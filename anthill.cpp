@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <new>
 #include <omp.h>
-
+#include <bits/stdc++.h>
 using namespace std;
 
 // ---------------------------------------------------------------------------------
@@ -236,6 +236,15 @@ void Lawn_Class::save_Lawn_to_file () {
     }
     fclose(outfile); 
 }
+
+int nearest_square(int joe){
+    for(int i =joe; i >= 0; i --){
+        if(pow(int(sqrt(i)), 2) == i){
+            return i;
+        }
+    }
+    return -1;
+}
 // ---------------------------------------------------------------------------------
 // Main program to find the anthill
 // 
@@ -260,28 +269,79 @@ int main (int argc, char **argv) {
 
     MyLawn.initialize_Lawn(size, anthill_x, anthill_y, steps); 
 
-    MyLawn.save_Lawn_to_file(); // Not recommended when size is large
+    //MyLawn.save_Lawn_to_file(); // Not recommended when size is large
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Example Approach #1: Brute force approach
 
-    start_time = omp_get_wtime(); 
-    volatile int found = 0;
-#pragma omp parallel for default(none) shared(MyLawn, found) 
-    for (int i = 0; i < MyLawn.m; i++) {
-	for (int j = 0; j < MyLawn.m; j++) {
-	    if (found == 0) {
-		if (MyLawn.guess_anthill_location(i,j) == 1) {
-		    found = 1;
-#pragma omp flush(found)
-		}
-	    }
-	}
-    }
-    // #pragma parallel for ends here ...
-    execution_time = omp_get_wtime() - start_time; 
+//     start_time = omp_get_wtime(); 
+//     volatile int found = 0;
+// #pragma omp parallel for default(none) shared(MyLawn, found) 
+//     for (int i = 0; i < MyLawn.m; i++) {
+// 	for (int j = 0; j < MyLawn.m; j++) {
+// 	    if (found == 0) {
+// 		if (MyLawn.guess_anthill_location(i,j) == 1) {
+// 		    found = 1;
+// #pragma omp flush(found)
+// 		}
+// 	    }
+// 	}
+//     }
+//     // #pragma parallel for ends here ...
+//     execution_time = omp_get_wtime() - start_time; 
 
-    MyLawn.report_results(execution_time); 
+    // MyLawn.report_results(execution_time); 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    int num_threads;
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            num_threads = omp_get_num_threads();
+        }
+    }
+    int num_blocks = pow(floor(sqrt(num_threads)), 2);
+    int block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
+    vector<pair<int, int>> block_sums(num_blocks);
+    start_time = omp_get_wtime(); 
+    for(int i = 0; i < num_blocks; i++){
+        int block_start_row = (i / MyLawn.m) * block_length;
+        int block_start_col = (i % MyLawn.m) * block_length;
+        int block_end_row = min(block_start_row + block_length, MyLawn.m);
+        int block_end_col = min(block_start_col + block_length, MyLawn.m);
+        int sum = 0;
+        for(int j = block_start_row; j < block_end_row; j++){
+            for(int k = block_start_col; k < block_end_col; k++){
+                sum += MyLawn.number_of_ants_in_cell(j, k);
+            }
+        }
+        block_sums.at(i) = pair<int, int>(sum, i);  
+    }
+
+    sort(block_sums.begin(), block_sums.end());
+    volatile int found = 0;
+    for(int i = block_sums.size()-1; i >= 0; i--){
+        int block_index = block_sums.at(i).second;
+        int block_start_row = (index / MyLawn.m) * block_length;
+        int block_start_col = (index % MyLawn.m) * block_length;
+        int block_end_row = min(block_start_row + block_length, MyLawn.m);
+        int block_end_col = min(block_start_col + block_length, MyLawn.m);
+        for(int j = block_start_row; j < block_end_row; j++){
+            for(int k = block_start_col; k < block_end_col; k++){
+                if (MyLawn.guess_anthill_location(i,j) == 1) {
+                    found = 1;
+                    break;
+                }
+            }
+            if(found == 1){
+                break;
+            }
+        }
+        if(found == 1){
+            break;
+        } 
+    }
+    execution_time = omp_get_wtime() - start_time; 
+    MyLawn.report_results(execution_time); 
     return 0;
 }
