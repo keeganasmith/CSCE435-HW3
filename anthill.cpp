@@ -310,6 +310,8 @@ int main (int argc, char **argv) {
         int block_start_col = (i % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
+        cout << "start row: " << block_start_row << " end row: " << block_end_row - 1 << "\n";
+        cout << "start col: " << block_start_col << " end col: " << block_end_col - 1 << "\n";
         int sum = 0;
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
