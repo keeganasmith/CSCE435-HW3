@@ -52,8 +52,8 @@ class Lawn_Class {
 // Returns the expected number of ants in cell (i,j) of the Lawn
 //  - increments query_count
 double Lawn_Class::number_of_ants_in_cell ( int i, int j) {
-#pragma omp atomic update
-    query_count++;
+// #pragma omp atomic update
+//     query_count++;
 
     return Lawn[i][j];
 }
@@ -331,15 +331,22 @@ int main (int argc, char **argv) {
     cout << "time to sum blocks: " << execution_time << "\n"; 
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
+    vector<int> thread_counts(num_threads);
+
     for(int i = block_sums.size()-1; i >= 0; i--){
         int index = block_sums.at(i).second;
         int block_start_row = (index / blocks_per_side) * block_length;
         int block_start_col = (index % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
-        #pragma omp parallel for default(none) shared(MyLawn, found, block_start_row, block_start_col, block_end_row, block_end_col) 
+        #pragma omp parallel for default(none) shared(MyLawn, found, block_start_row, block_start_col, block_end_row, block_end_col, thread_counts) 
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
+                if(found == 0){
+                    int thread_id = omp_get_thread_num();
+                    thread_counts[thread_id]++;
+                }
+                
                 if (found == 0 && MyLawn.guess_anthill_location(j, k) == 1) {
                     found = 1;
                     #pragma omp flush(found)
@@ -351,7 +358,13 @@ int main (int argc, char **argv) {
             break;
         }
     }
+    int total_guesses = 0;
+    for(int i = 0; i < thread_counts.size(); i++){
+        total_guesses += thread_counts.at(i);
+    }
     execution_time = omp_get_wtime() - start_time; 
     MyLawn.report_results(execution_time); 
+    cout << "Total guesses: " << total_guesses << "\n";
+    cout << "Total queries: " << pow(MyLawn.m, 2) << "\n";
     return 0;
 }
