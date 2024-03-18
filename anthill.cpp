@@ -346,6 +346,12 @@ int main (int argc, char **argv) {
                     break;
                 }
             }
+            if(found == 1){
+                break;
+            }
+        }
+        if(found == 1){
+            break;
         }
     }
     execution_time = omp_get_wtime() - start_time; 
