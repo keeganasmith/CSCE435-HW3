@@ -323,6 +323,8 @@ int main (int argc, char **argv) {
             block_sums.at(i) = pair<double, int>(sum, i);  
         }
     }
+    execution_time = omp_get_wtime() - start_time;
+    cout << "time to sum blocks: " << execution_time << "\n"; 
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
     for(int i = block_sums.size()-1; i >= 0; i--){
