@@ -61,8 +61,8 @@ double Lawn_Class::number_of_ants_in_cell ( int i, int j) {
 // Determines if the guess that the anthill is at cell (,j,) is true or false
 //  - increments guess_count
 int Lawn_Class::guess_anthill_location ( int i, int j) {
-#pragma omp atomic update
-    guess_count++;
+// #pragma omp atomic update
+//     guess_count++;
 
     if ((i == anthill_x) && (j == anthill_y)) {
 	return 1; 
