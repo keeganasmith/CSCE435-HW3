@@ -346,9 +346,6 @@ int main (int argc, char **argv) {
                     break;
                 }
             }
-            if(found == 1){
-                break;
-            }
         }
         if(found == 1){
             break;
