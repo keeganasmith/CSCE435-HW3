@@ -292,6 +292,8 @@ int main (int argc, char **argv) {
 
     // MyLawn.report_results(execution_time); 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    start_time = omp_get_wtime(); 
+
     int num_threads;
     #pragma omp parallel
     {
@@ -304,8 +306,7 @@ int main (int argc, char **argv) {
     int block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
     vector<pair<int, int>> block_sums(num_blocks);
     int blocks_per_side = sqrt(num_blocks);
-    start_time = omp_get_wtime(); 
-    double total_sum = 0.0;
+    #pragma omp parallel for
     for(int i = 0; i < num_blocks; i++){
         int block_start_row = (i / blocks_per_side) * block_length;
         int block_start_col = (i % blocks_per_side) * block_length;
@@ -317,8 +318,10 @@ int main (int argc, char **argv) {
                 sum += MyLawn.number_of_ants_in_cell(j, k);
             }
         }
-        total_sum += sum;
-        block_sums.at(i) = pair<double, int>(sum, i);  
+        #pragma omp critical
+        {
+            block_sums.at(i) = pair<double, int>(sum, i);  
+        }
     }
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
@@ -331,7 +334,6 @@ int main (int argc, char **argv) {
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
                 if (found == 0 && MyLawn.guess_anthill_location(j, k) == 1) {
-                    cout << "row: " << j << "col: " << k << "\n";
                     found = 1;
                     break;
                 }
