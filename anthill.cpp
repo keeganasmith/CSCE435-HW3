@@ -331,7 +331,7 @@ int main (int argc, char **argv) {
         int block_start_col = (index % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
-        #pragma omp for default(none) shared(MyLawn, found) 
+        #pragma omp parallel for default(none) shared(MyLawn, found) 
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
                 if (found == 0 && MyLawn.guess_anthill_location(j, k) == 1) {
