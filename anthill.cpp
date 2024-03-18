@@ -306,21 +306,25 @@ int main (int argc, char **argv) {
     int block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
     vector<pair<int, int>> block_sums(num_blocks);
     int blocks_per_side = sqrt(num_blocks);
-    #pragma omp parallel for
-    for(int i = 0; i < num_blocks; i++){
-        int block_start_row = (i / blocks_per_side) * block_length;
-        int block_start_col = (i % blocks_per_side) * block_length;
-        int block_end_row = min(block_start_row + block_length, MyLawn.m);
-        int block_end_col = min(block_start_col + block_length, MyLawn.m);
-        double sum = 0.0;
-        for(int j = block_start_row; j < block_end_row; j++){
-            for(int k = block_start_col; k < block_end_col; k++){
-                sum += MyLawn.number_of_ants_in_cell(j, k);
+    #pragma omp parallel default(none) shared(MyLawn, block_sums, num_blocks, blocks_per_side, block_length)
+    {
+        int thread_id = omp_get_thread_num();
+        int i = thread_id;
+        if(i < num_blocks){
+            int block_start_row = (i / blocks_per_side) * block_length;
+            int block_start_col = (i % blocks_per_side) * block_length;
+            int block_end_row = min(block_start_row + block_length, MyLawn.m);
+            int block_end_col = min(block_start_col + block_length, MyLawn.m);
+            double sum = 0.0;
+            for(int j = block_start_row; j < block_end_row; j++){
+                for(int k = block_start_col; k < block_end_col; k++){
+                    sum += MyLawn.number_of_ants_in_cell(j, k);
+                }
             }
-        }
-        #pragma omp critical
-        {
-            block_sums.at(i) = pair<double, int>(sum, i);  
+
+            
+            block_sums.at(i) = pair<double, int>(sum, i);
+            
         }
     }
     execution_time = omp_get_wtime() - start_time;
