@@ -311,8 +311,6 @@ int main (int argc, char **argv) {
         int block_start_col = (i % blocks_per_side) * block_length;
         int block_end_row = min(block_start_row + block_length, MyLawn.m);
         int block_end_col = min(block_start_col + block_length, MyLawn.m);
-        cout << "start row: " << block_start_row << " end row: " << block_end_row - 1 << "\n";
-        cout << "start col: " << block_start_col << " end col: " << block_end_col - 1 << "\n";
         double sum = 0.0;
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
@@ -322,11 +320,9 @@ int main (int argc, char **argv) {
         total_sum += sum;
         block_sums.at(i) = pair<double, int>(sum, i);  
     }
-    cout << "total sum was " << total_sum << "\n";
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
     for(int i = block_sums.size()-1; i >= 0; i--){
-        cout << "number of ants for block " << block_sums.at(i).second << ": " << block_sums.at(i).first << "\n";
         int index = block_sums.at(i).second;
         int block_start_row = (index / blocks_per_side) * block_length;
         int block_start_col = (index % blocks_per_side) * block_length;
@@ -335,7 +331,7 @@ int main (int argc, char **argv) {
         for(int j = block_start_row; j < block_end_row; j++){
             for(int k = block_start_col; k < block_end_col; k++){
                 if (found == 0 && MyLawn.guess_anthill_location(j, k) == 1) {
-                    cout << "i got here!\n";
+                    cout << "row: " << j << "col: " << k << "\n";
                     found = 1;
                     break;
                 }
