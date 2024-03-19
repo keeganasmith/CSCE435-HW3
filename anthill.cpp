@@ -320,11 +320,11 @@ int main (int argc, char **argv) {
             long long block_end_col = min(int(block_start_col + block_length), MyLawn.m);
             long long size = (block_end_col - block_start_col) * (block_end_row - block_start_row);
             long long num_to_process = 0;
-            if(size < 100){
+            if(size < 1000){
                 num_to_process = ceil(double(size) / 3.0);
             }
             else{
-                num_to_process = ceil((double(size) * 3.0) / 10.0);
+                num_to_process = log10(double(size)) * 100.0;
             }
 
             double sum = 0.0;
