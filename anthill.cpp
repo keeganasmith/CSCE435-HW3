@@ -4,6 +4,7 @@
 #include <new>
 #include <omp.h>
 #include <bits/stdc++.h>
+#include <ctime>  
 using namespace std;
 
 // ---------------------------------------------------------------------------------
@@ -302,48 +303,58 @@ int main (int argc, char **argv) {
             num_threads = omp_get_num_threads();
         }
     }
-    int num_blocks = pow(floor(sqrt(num_threads)), 2);
-    int block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
-    vector<pair<int, int>> block_sums(num_blocks);
-    int blocks_per_side = sqrt(num_blocks);
-    #pragma omp parallel default(none) shared(MyLawn, block_sums, num_blocks, blocks_per_side, block_length)
+    long long num_blocks = pow(floor(sqrt(num_threads)), 2);
+    long long block_length = ceil(double(MyLawn.m) / sqrt(num_blocks));
+    vector<pair<double, long long>> block_sums(num_blocks);
+    long long blocks_per_side = sqrt(num_blocks);
+    vector<long long> thread_queries(num_blocks);
+    srand(time(0));
+    #pragma omp parallel default(none) shared(MyLawn, block_sums, num_blocks, blocks_per_side, block_length, thread_queries)
     {
-        int thread_id = omp_get_thread_num();
-        int i = thread_id;
+        long long thread_id = omp_get_thread_num();
+        long long i = thread_id;
         if(i < num_blocks){
-            int block_start_row = (i / blocks_per_side) * block_length;
-            int block_start_col = (i % blocks_per_side) * block_length;
-            int block_end_row = min(block_start_row + block_length, MyLawn.m);
-            int block_end_col = min(block_start_col + block_length, MyLawn.m);
-            double sum = 0.0;
-            for(int j = block_start_row; j < block_end_row; j++){
-                for(int k = block_start_col; k < block_end_col; k++){
-                    sum += MyLawn.number_of_ants_in_cell(j, k);
-                }
+            long long block_start_row = (i / blocks_per_side) * block_length;
+            long long block_start_col = (i % blocks_per_side) * block_length;
+            long long block_end_row = min(block_start_row + block_length, MyLawn.m);
+            long long block_end_col = min(block_start_col + block_length, MyLawn.m);
+            long long size = (block_end_col - block_start_col) * (block_end_row - block_start_row);
+            long long num_to_process = 0;
+            if(size < 100){
+                num_to_process = ceil(double(size) / 3.0);
+            }
+            else{
+                num_to_process = log10(size) * 25;
             }
 
-            
-            block_sums.at(i) = pair<double, int>(sum, i);
+            double sum = 0.0;
+            for(long long j = 0; j < num_to_process; j++){
+                long long random_row = (rand() % (block_end_row - block_start_row)) + block_start_row; 
+                long long random_col = (rand() % (block_end_col - block_start_col)) + block_start_col;
+                sum += MyLawn.number_of_ants_in_cell(random_row, random_col);
+                thread_queries[i]++;
+            }
+            block_sums.at(i) = pair<double, long long>(sum / double(size), i);
             
         }
     }
-    execution_time = omp_get_wtime() - start_time;
-    cout << "time to sum blocks: " << execution_time << "\n"; 
+    // execution_time = omp_get_wtime() - start_time;
+    // cout << "time to sum blocks: " << execution_time << "\n"; 
     sort(block_sums.begin(), block_sums.end());
     volatile int found = 0;
-    vector<int> thread_counts(num_threads);
+    vector<long long> thread_counts(num_threads);
 
-    for(int i = block_sums.size()-1; i >= 0; i--){
-        int index = block_sums.at(i).second;
-        int block_start_row = (index / blocks_per_side) * block_length;
-        int block_start_col = (index % blocks_per_side) * block_length;
-        int block_end_row = min(block_start_row + block_length, MyLawn.m);
-        int block_end_col = min(block_start_col + block_length, MyLawn.m);
+    for(long long i = block_sums.size()-1; i >= 0; i--){
+        long long index = block_sums.at(i).second;
+        long long block_start_row = (index / blocks_per_side) * block_length;
+        long long block_start_col = (index % blocks_per_side) * block_length;
+        long long block_end_row = min(block_start_row + block_length, MyLawn.m);
+        long long block_end_col = min(block_start_col + block_length, MyLawn.m);
         #pragma omp parallel for default(none) shared(MyLawn, found, block_start_row, block_start_col, block_end_row, block_end_col, thread_counts) 
-        for(int j = block_start_row; j < block_end_row; j++){
-            for(int k = block_start_col; k < block_end_col; k++){
+        for(long long j = block_start_row; j < block_end_row; j++){
+            for(long long k = block_start_col; k < block_end_col; k++){
                 if(found == 0){
-                    int thread_id = omp_get_thread_num();
+                    long long thread_id = omp_get_thread_num();
                     thread_counts[thread_id]++;
                 }
                 
@@ -358,13 +369,17 @@ int main (int argc, char **argv) {
             break;
         }
     }
-    int total_guesses = 0;
+    long long total_guesses = 0;
     for(int i = 0; i < thread_counts.size(); i++){
         total_guesses += thread_counts.at(i);
+    }
+    long long total_queries = 0;
+    for(int i = 0; i < thread_queries.size(); i++){
+        total_queries += thread_queries.at(i);
     }
     execution_time = omp_get_wtime() - start_time; 
     MyLawn.report_results(execution_time); 
     cout << "Total guesses: " << total_guesses << "\n";
-    cout << "Total queries: " << pow(MyLawn.m, 2) << "\n";
+    cout << "Total queries: " << total_queries << "\n";
     return 0;
 }
