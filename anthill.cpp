@@ -316,8 +316,8 @@ int main (int argc, char **argv) {
         if(i < num_blocks){
             long long block_start_row = (i / blocks_per_side) * block_length;
             long long block_start_col = (i % blocks_per_side) * block_length;
-            long long block_end_row = min(block_start_row + block_length, MyLawn.m);
-            long long block_end_col = min(block_start_col + block_length, MyLawn.m);
+            long long block_end_row = min(int(block_start_row + block_length), MyLawn.m);
+            long long block_end_col = min(int(block_start_col + block_length), MyLawn.m);
             long long size = (block_end_col - block_start_col) * (block_end_row - block_start_row);
             long long num_to_process = 0;
             if(size < 100){
@@ -348,8 +348,8 @@ int main (int argc, char **argv) {
         long long index = block_sums.at(i).second;
         long long block_start_row = (index / blocks_per_side) * block_length;
         long long block_start_col = (index % blocks_per_side) * block_length;
-        long long block_end_row = min(block_start_row + block_length, MyLawn.m);
-        long long block_end_col = min(block_start_col + block_length, MyLawn.m);
+        long long block_end_row = min(int(block_start_row + block_length), MyLawn.m);
+        long long block_end_col = min(int(block_start_col + block_length), MyLawn.m);
         #pragma omp parallel for default(none) shared(MyLawn, found, block_start_row, block_start_col, block_end_row, block_end_col, thread_counts) 
         for(long long j = block_start_row; j < block_end_row; j++){
             for(long long k = block_start_col; k < block_end_col; k++){
