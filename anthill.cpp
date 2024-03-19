@@ -324,7 +324,7 @@ int main (int argc, char **argv) {
                 num_to_process = ceil(double(size) / 3.0);
             }
             else{
-                num_to_process = log10(size) * 25;
+                num_to_process = ceil((double(size) * 3.0) / 10.0);
             }
 
             double sum = 0.0;
